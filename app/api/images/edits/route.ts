@@ -19,10 +19,7 @@ export async function POST(request: Request) {
   const prompt = String(incoming.get("prompt") ?? "").trim();
   const requestedSize = String(incoming.get("size") ?? "1024x1024");
   const requestedCount = Number(incoming.get("n") ?? 1);
-  const preferredImages = incoming.getAll("image[]").filter((entry): entry is File => entry instanceof File);
-  const images = preferredImages.length > 0
-    ? preferredImages
-    : incoming.getAll("image").filter((entry): entry is File => entry instanceof File);
+  const images = incoming.getAll("image").filter((entry): entry is File => entry instanceof File);
 
   if (!prompt) return jsonError("編集内容を入力してください。");
   if (prompt.length > 20_000) return jsonError("プロンプトは20,000文字以内で入力してください。");
@@ -44,7 +41,7 @@ export async function POST(request: Request) {
   outgoing.set("size", sizes.has(requestedSize) ? requestedSize : "1024x1024");
   outgoing.set("output_format", "png");
   outgoing.set("response_format", "b64_json");
-  for (const image of images) outgoing.append("image[]", image, image.name || "reference.png");
+  for (const image of images) outgoing.append("image", image, image.name || "reference.png");
 
   const upstream = await callUpstream(config.endpoint("edits"), config.apiKey, {
     method: "POST",

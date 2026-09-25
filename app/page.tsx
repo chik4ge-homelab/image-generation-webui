@@ -90,7 +90,7 @@ export default function Home() {
     setError("");
     try {
       let response: Response;
-      if (mode === "generate" && references.length === 0) {
+      if (mode === "generate") {
         response = await fetch("/api/images/generations", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -101,7 +101,7 @@ export default function Home() {
         form.set("prompt", prompt.trim());
         form.set("n", String(count));
         form.set("size", size);
-        references.forEach((file) => form.append("image[]", file, file.name));
+        references.forEach((file) => form.append("image", file, file.name));
         response = await fetch("/api/images/edits", { method: "POST", body: form });
       }
 
@@ -196,10 +196,10 @@ export default function Home() {
             </button>
           </div>
 
-          {(mode === "edit" || mode === "generate") && (
+          {mode === "edit" && (
             <section className="reference-section">
               <div className="section-label-row">
-                <label className="field-label">{mode === "edit" ? "編集する画像" : "参照画像（任意）"}</label>
+                <label className="field-label">参照画像</label>
                 <span className="muted-count">{references.length}/4</span>
               </div>
               {previews.length > 0 && (
@@ -216,7 +216,7 @@ export default function Home() {
                 <label className="dropzone" onDragOver={(event) => event.preventDefault()} onDrop={onDrop}>
                   <input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={onFileChange} />
                   <span className="upload-icon">↑</span>
-                  <span><strong>画像を追加</strong><small>{mode === "generate" ? "画像の内容やスタイルを参考にします" : "ドラッグ＆ドロップもできます"}</small></span>
+                  <span><strong>画像を追加</strong><small>ドラッグ＆ドロップもできます</small></span>
                 </label>
               )}
             </section>
