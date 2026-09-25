@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, type ChangeEvent, type DragEvent } from "
 
 type Mode = "generate" | "edit";
 type ResultImage = { id: string; src: string; mimeType: string; revisedPrompt?: string };
-type ApiConfig = { model: string; configured: boolean; accessConfigured: boolean };
+type ApiConfig = { configured: boolean };
 
 const sizes = [
   { value: "1024x1024", label: "正方形", ratio: "1:1" },
@@ -35,8 +35,6 @@ function getErrorMessage(payload: unknown, status: number) {
 export default function Home() {
   const [mode, setMode] = useState<Mode>("generate");
   const [prompt, setPrompt] = useState("");
-  const [model, setModel] = useState("gpt-image-1");
-  const [accessToken, setAccessToken] = useState("");
   const [size, setSize] = useState(sizes[0].value);
   const [quality, setQuality] = useState("auto");
   const [count, setCount] = useState(1);
@@ -52,9 +50,8 @@ export default function Home() {
       .then((response) => response.json())
       .then((value: ApiConfig) => {
         setConfig(value);
-        if (value.model) setModel(value.model);
       })
-      .catch(() => setConfig({ model: "gpt-image-1", configured: false, accessConfigured: false }));
+      .catch(() => setConfig({ configured: false }));
   }, []);
 
   useEffect(() => {
@@ -63,10 +60,10 @@ export default function Home() {
     return () => next.forEach((preview) => URL.revokeObjectURL(preview.src));
   }, [references]);
 
-  const statusReady = Boolean(config?.configured && config?.accessConfigured);
+  const statusReady = Boolean(config?.configured);
   const canSubmit = useMemo(() => {
-    return Boolean(prompt.trim() && model.trim() && accessToken.trim() && !busy && (mode === "generate" || references.length > 0));
-  }, [accessToken, busy, mode, model, prompt, references.length]);
+    return Boolean(prompt.trim() && !busy && (mode === "generate" || references.length > 0));
+  }, [busy, mode, prompt, references.length]);
 
   function addReferences(files: FileList | File[]) {
     const selected = Array.from(files).filter((file) => file.type.startsWith("image/"));
@@ -94,22 +91,20 @@ export default function Home() {
     setError("");
     try {
       let response: Response;
-      const headers = { "x-app-access-token": accessToken };
       if (mode === "generate") {
         response = await fetch("/api/images/generations", {
           method: "POST",
-          headers: { ...headers, "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: prompt.trim(), model: model.trim(), n: count, size, quality }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: prompt.trim(), n: count, size, quality }),
         });
       } else {
         const form = new FormData();
         form.set("prompt", prompt.trim());
-        form.set("model", model.trim());
         form.set("n", String(count));
         form.set("size", size);
         form.set("quality", quality);
         references.forEach((file) => form.append("image", file, file.name));
-        response = await fetch("/api/images/edits", { method: "POST", headers, body: form });
+        response = await fetch("/api/images/edits", { method: "POST", body: form });
       }
 
       const payload: unknown = await response.json().catch(() => null);
@@ -181,8 +176,6 @@ export default function Home() {
         <div className={`connection ${statusReady ? "is-ready" : "is-offline"}`}>
           <span className="status-dot" />
           <span>{statusReady ? "API 設定済み" : "サーバー設定を確認"}</span>
-          <span className="connection-separator">·</span>
-          <span className="model-name">{model || "model"}</span>
         </div>
       </header>
 
@@ -250,10 +243,6 @@ export default function Home() {
           <section className="settings-section">
             <div className="section-label-row"><span className="field-label">生成設定</span><span className="optional-label">お好みで調整</span></div>
             <div className="setting-row">
-              <label htmlFor="model">モデル</label>
-              <input id="model" value={model} onChange={(event) => setModel(event.target.value)} maxLength={120} />
-            </div>
-            <div className="setting-row">
               <label htmlFor="size">比率</label>
               <select id="size" value={size} onChange={(event) => setSize(event.target.value)}>
                 {sizes.map((item) => <option key={item.value} value={item.value}>{item.label}　{item.ratio}</option>)}
@@ -275,14 +264,8 @@ export default function Home() {
             </div>
           </section>
 
-          <section className="access-section">
-            <div className="section-label-row"><label htmlFor="access-token" className="field-label">アプリ接続コード</label><span className="lock-mark">▣</span></div>
-            <input id="access-token" type="password" value={accessToken} onChange={(event) => setAccessToken(event.target.value)} placeholder="サーバーの APP_ACCESS_TOKEN" autoComplete="current-password" />
-            <p>画像 API キーはサーバー内に保持され、この画面には送信されません。</p>
-          </section>
-
           {error && <div className="error-message" role="alert"><span>!</span>{error}</div>}
-          {!statusReady && config && <div className="setup-message">サーバーに IMAGE_API_BASE_URL、IMAGE_API_KEY、APP_ACCESS_TOKEN を設定してください。</div>}
+          {!statusReady && config && <div className="setup-message">サーバーに IMAGE_API_BASE_URL と IMAGE_API_KEY を設定してください。</div>}
 
           <button className="generate-button" type="button" disabled={!canSubmit || !statusReady} onClick={generate}>
             {busy ? <><span className="button-spinner" /> 生成しています…</> : <><span>{mode === "edit" ? "✧" : "✦"}</span> {mode === "edit" ? "編集画像を生成" : "画像を生成"}<kbd>↵</kbd></>}

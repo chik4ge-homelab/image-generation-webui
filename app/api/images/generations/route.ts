@@ -1,4 +1,4 @@
-import { callUpstream, forwardImageResponse, getUpstreamConfig, jsonError, unauthorizedResponse } from "@/lib/image-api";
+import { callUpstream, forwardImageResponse, getUpstreamConfig, jsonError } from "@/lib/image-api";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -7,9 +7,6 @@ const sizes = new Set(["1024x1024", "1536x1024", "1024x1536"]);
 const qualities = new Set(["auto", "low", "medium", "high"]);
 
 export async function POST(request: Request) {
-  const authError = unauthorizedResponse(request);
-  if (authError) return authError;
-
   let input: unknown;
   try {
     input = await request.json();
@@ -20,7 +17,6 @@ export async function POST(request: Request) {
 
   const body = input as Record<string, unknown>;
   const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
-  const model = typeof body.model === "string" ? body.model.trim().slice(0, 120) : "";
   const size = typeof body.size === "string" && sizes.has(body.size) ? body.size : "1024x1024";
   const quality = typeof body.quality === "string" && qualities.has(body.quality) ? body.quality : "auto";
   const count = Number.isInteger(body.n) ? Math.min(4, Math.max(1, Number(body.n))) : 1;
@@ -39,7 +35,6 @@ export async function POST(request: Request) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: model || config.model,
       prompt,
       n: count,
       size,

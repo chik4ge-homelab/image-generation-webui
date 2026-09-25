@@ -1,4 +1,4 @@
-import { callUpstream, forwardImageResponse, getUpstreamConfig, jsonError, unauthorizedResponse } from "@/lib/image-api";
+import { callUpstream, forwardImageResponse, getUpstreamConfig, jsonError } from "@/lib/image-api";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,9 +10,6 @@ const MAX_FILES = 4;
 const MAX_FILE_BYTES = 12 * 1024 * 1024;
 
 export async function POST(request: Request) {
-  const authError = unauthorizedResponse(request);
-  if (authError) return authError;
-
   let incoming: FormData;
   try {
     incoming = await request.formData();
@@ -21,7 +18,6 @@ export async function POST(request: Request) {
   }
 
   const prompt = String(incoming.get("prompt") ?? "").trim();
-  const model = String(incoming.get("model") ?? "").trim().slice(0, 120);
   const requestedSize = String(incoming.get("size") ?? "1024x1024");
   const requestedQuality = String(incoming.get("quality") ?? "auto");
   const requestedCount = Number(incoming.get("n") ?? 1);
@@ -42,7 +38,6 @@ export async function POST(request: Request) {
   }
 
   const outgoing = new FormData();
-  outgoing.set("model", model || config.model);
   outgoing.set("prompt", prompt);
   outgoing.set("n", String(Number.isInteger(requestedCount) ? Math.min(4, Math.max(1, requestedCount)) : 1));
   outgoing.set("size", sizes.has(requestedSize) ? requestedSize : "1024x1024");

@@ -1,31 +1,6 @@
-import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 
 const MAX_OUTPUT_BYTES = 25 * 1024 * 1024;
-
-export function unauthorizedResponse(request: Request): NextResponse | null {
-  const expected = process.env.APP_ACCESS_TOKEN?.trim();
-  if (!expected) {
-    return NextResponse.json(
-      { error: "APP_ACCESS_TOKEN is not configured on the server." },
-      { status: 503, headers: { "Cache-Control": "no-store" } },
-    );
-  }
-
-  const supplied = request.headers.get("x-app-access-token") ?? "";
-  const expectedBytes = Buffer.from(expected);
-  const suppliedBytes = Buffer.from(supplied);
-  const matches = expectedBytes.length === suppliedBytes.length && timingSafeEqual(expectedBytes, suppliedBytes);
-
-  if (!matches) {
-    return NextResponse.json(
-      { error: "アプリ接続コードが正しくありません。" },
-      { status: 401, headers: { "Cache-Control": "no-store" } },
-    );
-  }
-
-  return null;
-}
 
 export function getUpstreamConfig() {
   const rawBase = process.env.IMAGE_API_BASE_URL?.trim();
@@ -44,7 +19,6 @@ export function getUpstreamConfig() {
 
   return {
     apiKey,
-    model: process.env.IMAGE_MODEL?.trim() || "gpt-image-1",
     endpoint(path: "generations" | "edits") {
       const root = rawBase.replace(/\/+$/, "");
       return `${root}/images/${path}`;
