@@ -4,7 +4,6 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const sizes = new Set(["1024x1024", "1536x1024", "1024x1536"]);
-const qualities = new Set(["auto", "low", "medium", "high"]);
 
 export async function POST(request: Request) {
   let input: unknown;
@@ -18,7 +17,6 @@ export async function POST(request: Request) {
   const body = input as Record<string, unknown>;
   const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
   const size = typeof body.size === "string" && sizes.has(body.size) ? body.size : "1024x1024";
-  const quality = typeof body.quality === "string" && qualities.has(body.quality) ? body.quality : "auto";
   const count = Number.isInteger(body.n) ? Math.min(4, Math.max(1, Number(body.n))) : 1;
 
   if (!prompt) return jsonError("プロンプトを入力してください。");
@@ -38,7 +36,6 @@ export async function POST(request: Request) {
       prompt,
       n: count,
       size,
-      quality,
       output_format: "png",
       response_format: "b64_json",
     }),

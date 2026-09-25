@@ -36,7 +36,6 @@ export default function Home() {
   const [mode, setMode] = useState<Mode>("generate");
   const [prompt, setPrompt] = useState("");
   const [size, setSize] = useState(sizes[0].value);
-  const [quality, setQuality] = useState("auto");
   const [count, setCount] = useState(1);
   const [references, setReferences] = useState<File[]>([]);
   const [results, setResults] = useState<ResultImage[]>([]);
@@ -95,14 +94,13 @@ export default function Home() {
         response = await fetch("/api/images/generations", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: prompt.trim(), n: count, size, quality }),
+          body: JSON.stringify({ prompt: prompt.trim(), n: count, size }),
         });
       } else {
         const form = new FormData();
         form.set("prompt", prompt.trim());
         form.set("n", String(count));
         form.set("size", size);
-        form.set("quality", quality);
         references.forEach((file) => form.append("image", file, file.name));
         response = await fetch("/api/images/edits", { method: "POST", body: form });
       }
@@ -248,19 +246,11 @@ export default function Home() {
                 {sizes.map((item) => <option key={item.value} value={item.value}>{item.label}　{item.ratio}</option>)}
               </select>
             </div>
-            <div className="setting-columns">
-              <div className="setting-row">
-                <label htmlFor="quality">品質</label>
-                <select id="quality" value={quality} onChange={(event) => setQuality(event.target.value)}>
-                  <option value="auto">自動</option><option value="low">低</option><option value="medium">標準</option><option value="high">高</option>
-                </select>
-              </div>
-              <div className="setting-row">
-                <label htmlFor="count">枚数</label>
-                <select id="count" value={count} onChange={(event) => setCount(Number(event.target.value))}>
-                  {[1, 2, 3, 4].map((value) => <option key={value} value={value}>{value} 枚</option>)}
-                </select>
-              </div>
+            <div className="setting-row">
+              <label htmlFor="count">枚数</label>
+              <select id="count" value={count} onChange={(event) => setCount(Number(event.target.value))}>
+                {[1, 2, 3, 4].map((value) => <option key={value} value={value}>{value} 枚</option>)}
+              </select>
             </div>
           </section>
 

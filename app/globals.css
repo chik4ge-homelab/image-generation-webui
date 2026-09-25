@@ -69,9 +69,6 @@ textarea:focus, input:focus, select:focus { border-color: #a7c95c; box-shadow: 0
 .setting-row input, .setting-row select { width: 100%; min-width: 0; height: 34px; padding: 0 10px; border: 1px solid #e8e7e1; border-radius: 7px; outline: none; background: #fff; color: #343631; font-size: 10px; }
 .setting-row select { cursor: pointer; }
 .setting-row input { font-family: var(--mono); font-size: 9px; }
-.setting-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.setting-columns .setting-row { gap: 8px; }
-.setting-columns .setting-row label { flex-basis: 40px; }
 .error-message, .setup-message { display: flex; align-items: flex-start; gap: 8px; margin-top: 12px; padding: 10px 11px; border-radius: 7px; color: #914138; background: #fff0ed; font-size: 10px; line-height: 1.5; }
 .error-message span { flex: 0 0 15px; width: 15px; height: 15px; display: grid; place-items: center; border: 1px solid #d5a099; border-radius: 50%; font-weight: 700; }
 .setup-message { color: #795f27; background: #fff7e3; }

@@ -5,7 +5,6 @@ export const dynamic = "force-dynamic";
 
 const allowedTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
 const sizes = new Set(["1024x1024", "1536x1024", "1024x1536"]);
-const qualities = new Set(["auto", "low", "medium", "high"]);
 const MAX_FILES = 4;
 const MAX_FILE_BYTES = 12 * 1024 * 1024;
 
@@ -19,7 +18,6 @@ export async function POST(request: Request) {
 
   const prompt = String(incoming.get("prompt") ?? "").trim();
   const requestedSize = String(incoming.get("size") ?? "1024x1024");
-  const requestedQuality = String(incoming.get("quality") ?? "auto");
   const requestedCount = Number(incoming.get("n") ?? 1);
   const images = incoming.getAll("image").filter((entry): entry is File => entry instanceof File);
 
@@ -41,7 +39,6 @@ export async function POST(request: Request) {
   outgoing.set("prompt", prompt);
   outgoing.set("n", String(Number.isInteger(requestedCount) ? Math.min(4, Math.max(1, requestedCount)) : 1));
   outgoing.set("size", sizes.has(requestedSize) ? requestedSize : "1024x1024");
-  outgoing.set("quality", qualities.has(requestedQuality) ? requestedQuality : "auto");
   outgoing.set("output_format", "png");
   outgoing.set("response_format", "b64_json");
   for (const image of images) outgoing.append("image", image, image.name || "reference.png");
