@@ -43,11 +43,11 @@ docker run --rm -p 3000:3000 \
 
 ## 公開イメージ
 
-GitHub Actions は `main` への push と `v*` tag で GHCR にイメージを公開します。初回 publish 後、GitHub Packages の設定で visibility を Public にしてください。
+GitHub Actions は `main` への push と `v*` tag で GHCR にイメージを公開します。現在の `latest` と `main` は認証なしで pull できます。
 
 - `ghcr.io/chik4ge-homelab/image-generation-webui:latest`
 - `ghcr.io/chik4ge-homelab/image-generation-webui:main`
 - `ghcr.io/chik4ge-homelab/image-generation-webui:sha-<commit>`
 - `ghcr.io/chik4ge-homelab/image-generation-webui:<version>` (version tag)
 
-Public パッケージは認証なしで pull できます。Public 化後は Private に戻せません。
+パッケージは Public です。GitHub の仕様上、Public 化後は Private に戻せません。
